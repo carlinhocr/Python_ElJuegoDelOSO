@@ -68,6 +68,9 @@ class Puzzle(object):
     def mostrarNombreObjeto1(self):
         return self.objeto1.mostrarNombre()
 
+    def mostrarNombreObjeto2(self):
+        return self.objeto2.mostrarNombre()
+
     def statusSolved(self):
         return self.resuelto
 
@@ -119,15 +122,30 @@ class Pantalla(object):
             print("No puedes hablar con: " + objetoAHablar)
         return
 
+    def usar(self,objeto1,objeto2):
+        if objeto1 == "" or objeto2 == "":
+            print("Si no vas a usar dos objetos ni me digas Usar!!!")
+            return
+        found = False
+        for p in self.puzzle:
+            if p.mostrarAccion() == "usar":
+                if (p.mostrarNombreObjeto1() == objeto1 and p.mostrarNombreObjeto2() == objeto2) or (p.mostrarNombreObjeto1() == objeto2 and p.mostrarNombreObjeto2() == objeto1):
+                   print(p.resolverPuzzle())
+                   found = True
+        if not found:
+            print("No puedes usar " + objeto1 +" con "+ objeto2)
+        return
 
 def main():
     objetoPuerta = ObjetoJuego("puerta","Es una puerta de metal reforzada que se ve muy muy fuerte")
     objetoLlave = ObjetoJuego("llave","Es una llave de oro que sirve para abrir puertas reforzdas")
     objetoOSO = ObjetoJuego("oso","Es un Oso que sabe cantar, único en el mundo")
+    objetoPlanta = ObjetoJuego("planta", "Puede ver una planta con una hermosa flor")
     puzzlePuerta = Puzzle(objetoLlave,objetoPuerta,"usar","Puedes Ver una Puerta que esta cerrada","La puerta está Abierta")
     puzzleOSO = Puzzle(objetoOSO,"objeto2","hablar","Puedes Ver un OSO con cara de Cantor","El oso canta y canta y canta 51,60")
-    puzzles =[puzzleOSO]
+    puzzles =[puzzlePuerta,puzzleOSO]
     pantallaOso = Pantalla([objetoPuerta,objetoLlave,objetoOSO],[puzzlePuerta,puzzleOSO],"dibujar","Este es el bosque del OSO")
+    pantallaPatio =Pantalla([objetoPlanta],[],"dibujar","Este es un hermoso patio donde da mucho el Sol")
     currentScreen = pantallaOso
     currentScreen.mostrarDescripcion()
     solvedGame = False
@@ -135,10 +153,13 @@ def main():
         x = list(map(str, input("Que deseas hacer? ").split()))
         firstWord = str.lower(x[0])
         secondWord = ""
-        if len(x) >= 2:
+        thirdWord = ""
+        if len(x) == 2:
             secondWord = str.lower(x[1])
         elif len(x) >= 3:
+            secondWord = str.lower(x[1])
             thirdWord = str.lower(x[2])
+
         if firstWord == "mirar":
             if len(x) == 1:
                 currentScreen.mirar("")
@@ -149,6 +170,15 @@ def main():
                 currentScreen.hablar("")
             else:
                 currentScreen.hablar(secondWord)
+        elif firstWord == "usar":
+            if len(x) == 1:
+                currentScreen.usar("","")
+            elif secondWord == "" or thirdWord == "":
+                currentScreen.usar("", "")
+            else:
+                currentScreen.usar(secondWord,thirdWord)
+        elif firstWord == "ayuda":
+            print("puedes usar los verbos: mirar, hablar, usar y todos con uno o dos objetos")
         else:
             print("No se lo que quieres hacer: " + x[0])
 
@@ -158,7 +188,10 @@ def main():
             if p.statusSolved() == True:
                 totalPuzzlesSolved += 1
         if totalPuzzlesSolved == totalPuzzles:
+            print ("------------------------------------")
             print("Ganaste!! Campeón de la vida y el Amoorrrrr")
+            for p in puzzles:
+                print(p.mostrarDescripcion())
             solvedGame = True
 
 
