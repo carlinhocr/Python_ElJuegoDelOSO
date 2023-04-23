@@ -68,6 +68,9 @@ class Puzzle(object):
     def mostrarNombreObjeto1(self):
         return self.objeto1.mostrarNombre()
 
+    def statusSolved(self):
+        return self.resuelto
+
 
 class Pantalla(object):
 
@@ -109,7 +112,6 @@ class Pantalla(object):
         found = False
         for p in self.puzzle:
             if p.mostrarAccion() == "hablar":
-                print(p.mostrarNombreObjeto1())
                 if p.mostrarNombreObjeto1() == objetoAHablar:
                     print(p.resolverPuzzle())
                     found = True
@@ -124,10 +126,12 @@ def main():
     objetoOSO = ObjetoJuego("oso","Es un Oso que sabe cantar, único en el mundo")
     puzzlePuerta = Puzzle(objetoLlave,objetoPuerta,"usar","Puedes Ver una Puerta que esta cerrada","La puerta está Abierta")
     puzzleOSO = Puzzle(objetoOSO,"objeto2","hablar","Puedes Ver un OSO con cara de Cantor","El oso canta y canta y canta 51,60")
+    puzzles =[puzzleOSO]
     pantallaOso = Pantalla([objetoPuerta,objetoLlave,objetoOSO],[puzzlePuerta,puzzleOSO],"dibujar","Este es el bosque del OSO")
     currentScreen = pantallaOso
     currentScreen.mostrarDescripcion()
-    while True:
+    solvedGame = False
+    while not solvedGame:
         x = list(map(str, input("Que deseas hacer? ").split()))
         firstWord = str.lower(x[0])
         secondWord = ""
@@ -147,6 +151,15 @@ def main():
                 currentScreen.hablar(secondWord)
         else:
             print("No se lo que quieres hacer: " + x[0])
+
+        totalPuzzlesSolved = 0
+        totalPuzzles = len(puzzles)
+        for p in puzzles:
+            if p.statusSolved() == True:
+                totalPuzzlesSolved += 1
+        if totalPuzzlesSolved == totalPuzzles:
+            print("Ganaste!! Campeón de la vida y el Amoorrrrr")
+            solvedGame = True
 
 
 if __name__ == "__main__":
