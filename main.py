@@ -58,6 +58,17 @@ class Puzzle(object):
             descripcion = self.descripcionNoResuelto
         return descripcion
 
+    def mostrarAccion(self):
+        return self.accionResuelve
+
+    def resolverPuzzle(self):
+        self.resuelto=True
+        return self.descripcionResuelto
+
+    def mostrarNombreObjeto1(self):
+        return self.objeto1.mostrarNombre()
+
+
 class Pantalla(object):
 
     def __init__(self,objetos,puzzle,dibujar,descripcion):
@@ -74,7 +85,8 @@ class Pantalla(object):
                 stringObjetos += o.mostrarNombre() + ","
             print("puedes ver: " + stringObjetos)
         if self.puzzle != "":
-            print(self.puzzle.mostrarDescripcion())
+            for p in self.puzzle:
+                print(p.mostrarDescripcion())
         return
 
     def mirar(self,objetoAMirar):
@@ -90,22 +102,51 @@ class Pantalla(object):
             print("No encuentro ese objeto para mirar")
         return
 
+    def hablar(self, objetoAHablar):
+        if objetoAHablar == "":
+            print("Hablas solo como un loco!!")
+            return
+        found = False
+        for p in self.puzzle:
+            if p.mostrarAccion() == "hablar":
+                print(p.mostrarNombreObjeto1())
+                if p.mostrarNombreObjeto1() == objetoAHablar:
+                    print(p.resolverPuzzle())
+                    found = True
+        if not found:
+            print("No puedes hablar con: " + objetoAHablar)
+        return
+
+
 def main():
     objetoPuerta = ObjetoJuego("puerta","Es una puerta de metal reforzada que se ve muy muy fuerte")
     objetoLlave = ObjetoJuego("llave","Es una llave de oro que sirve para abrir puertas reforzdas")
-    puzzlePuerta = Puzzle("objeto1","objeto2","USAR","Puedes Ver una Puerta que esta cerrada","La puerta está Abierta")
-    pantallaOso = Pantalla([objetoPuerta,objetoLlave],puzzlePuerta,"dibujar","Este es el bosque del OSO")
+    objetoOSO = ObjetoJuego("oso","Es un Oso que sabe cantar, único en el mundo")
+    puzzlePuerta = Puzzle(objetoLlave,objetoPuerta,"usar","Puedes Ver una Puerta que esta cerrada","La puerta está Abierta")
+    puzzleOSO = Puzzle(objetoOSO,"objeto2","hablar","Puedes Ver un OSO con cara de Cantor","El oso canta y canta y canta 51,60")
+    pantallaOso = Pantalla([objetoPuerta,objetoLlave,objetoOSO],[puzzlePuerta,puzzleOSO],"dibujar","Este es el bosque del OSO")
     currentScreen = pantallaOso
     currentScreen.mostrarDescripcion()
     while True:
         x = list(map(str, input("Que deseas hacer? ").split()))
-        if str.lower(x[0]) == "mirar":
+        firstWord = str.lower(x[0])
+        secondWord = ""
+        if len(x) >= 2:
+            secondWord = str.lower(x[1])
+        elif len(x) >= 3:
+            thirdWord = str.lower(x[2])
+        if firstWord == "mirar":
             if len(x) == 1:
                 currentScreen.mirar("")
             else:
-                currentScreen.mirar(x[1])
+                currentScreen.mirar(secondWord)
+        elif firstWord == "hablar":
+            if len(x) == 1:
+                currentScreen.hablar("")
+            else:
+                currentScreen.hablar(secondWord)
         else:
-            print("No se lo que es: " + x[0])
+            print("No se lo que quieres hacer: " + x[0])
 
 
 if __name__ == "__main__":
