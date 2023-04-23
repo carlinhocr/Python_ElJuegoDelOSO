@@ -30,15 +30,19 @@
 # te deja ir a través de la pueta una vez abierta
 
 class ObjetoJuego(object):
-    def __init__(self,nombre,descripcion):
+    def __init__(self,nombre,descripcion,removable):
         self.nombre = nombre
         self.descripcion = descripcion
+        self.removable = removable
 
     def mostrarDescripcion(self):
         return self.descripcion
 
     def mostrarNombre(self):
         return self.nombre
+
+    def isRemovable(self):
+        return self.removable
 
 class Puzzle(object):
 
@@ -75,13 +79,20 @@ class Puzzle(object):
 
 class Pantalla(object):
 
-    def __init__(self,name,objetos,puzzle,dibujar,descripcion):
+    def __init__(self,name,puzzle,dibujar,descripcion):
         self.name = name
-        self.objetos = objetos
+        self.objetos = []
         self.puzzle = puzzle
         self.dibujar = dibujar
         self.descripcion = descripcion
         self.adyacentes = ["", "", "", ""]
+
+    def addObjects(self,objecto):
+        self.objetos.append(objecto)
+
+    def removeObjects(self,objecto):
+        if objecto.isRemovale():
+            self.objetos.remove(objecto)
 
     def addScreen(self,position,screen):
         self.adyacentes[position] = screen
@@ -178,18 +189,24 @@ class Pantalla(object):
             screen = ""
         return screen, found
 
+
+
 def main():
-    objetoPuerta = ObjetoJuego("puerta","Es una puerta de metal reforzada que se ve muy muy fuerte")
-    objetoLlave = ObjetoJuego("llave","Es una llave de oro que sirve para abrir puertas reforzdas")
-    objetoOSO = ObjetoJuego("oso","Es un Oso que sabe cantar, único en el mundo")
-    objetoPlanta = ObjetoJuego("planta", "Puede ver una planta con una hermosa flor")
+    objetoPuerta = ObjetoJuego("puerta","Es una puerta de metal reforzada que se ve muy muy fuerte",False)
+    objetoLlave = ObjetoJuego("llave","Es una llave de oro que sirve para abrir puertas reforzdas",True)
+    objetoOSO = ObjetoJuego("oso","Es un Oso que sabe cantar, único en el mundo",False)
+    objetoPlanta = ObjetoJuego("planta", "Puede ver una planta con una hermosa flor",True)
     puzzlePuerta = Puzzle(objetoLlave,objetoPuerta,"usar","Puedes Ver una Puerta que esta cerrada","La puerta está Abierta")
     puzzleOSO = Puzzle(objetoOSO,"objeto2","hablar","Puedes Ver un OSO con cara de Cantor","El oso canta y canta y canta 51,60")
     puzzles =[puzzlePuerta,puzzleOSO]
-    pantallaOso = Pantalla("pantallaOso",[objetoPuerta,objetoLlave,objetoOSO],[puzzlePuerta,puzzleOSO],"dibujar","Este es el bosque del OSO")
-    pantallaPatio =Pantalla("pantallaPatio",[objetoPlanta],[],"dibujar","Este es un hermoso patio donde da mucho el Sol")
+    pantallaOso = Pantalla("pantallaOso",[puzzlePuerta,puzzleOSO],"dibujar","Este es el bosque del OSO")
+    pantallaPatio =Pantalla("pantallaPatio",[],"dibujar","Este es un hermoso patio donde da mucho el Sol")
+    pantallaOso.addObjects(objetoPuerta)
+    pantallaOso.addObjects(objetoLlave)
+    pantallaOso.addObjects(objetoOSO)
     pantallaOso.addScreen(3,pantallaPatio)
     pantallaPatio.addScreen(0,pantallaOso)
+    pantallaPatio.addObjects(objetoPlanta)
     currentScreen = pantallaOso
     currentScreen.mostrarDescripcion()
     solvedGame = False
