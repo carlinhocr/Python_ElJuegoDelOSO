@@ -77,6 +77,44 @@ class Puzzle(object):
     def statusSolved(self):
         return self.resuelto
 
+class Personaje(object):
+
+    def __init__(self,name,inventory=[]):
+        self.name = name
+        self.inventory = inventory
+
+    def addInventory(self,objeto):
+        self.inventory.append(objeto)
+
+    def removeInventory(self,objecto):
+        if objecto.isRemovale():
+            self.inventory.remove(objeto)
+
+    def showInventory(self):
+        return self.inventory
+
+    def showName(self):
+        return self.name
+
+    def printInventory(self):
+        stringObjetos = ""
+        if self.inventory != "":
+            for o in self.inventory:
+                stringObjetos += o.mostrarNombre() + ","
+            print("Tiene en tu inventario: " + stringObjetos)
+
+    def mirar(self,objetoAMirar):
+        found = False
+        if self.inventory != "":
+            for o in self.inventory:
+                if o.mostrarNombre() == objetoAMirar:
+                    print(o.mostrarDescripcion())
+                    found = True
+        # if not found:
+        #     print("No encuentro ese objeto para mirar")
+        return found
+
+
 class Pantalla(object):
 
     def __init__(self,name,puzzle,dibujar,descripcion):
@@ -93,6 +131,9 @@ class Pantalla(object):
     def removeObjects(self,objecto):
         if objecto.isRemovale():
             self.objetos.remove(objecto)
+
+    def showObjects(self):
+        return self.objetos
 
     def addScreen(self,position,screen):
         self.adyacentes[position] = screen
@@ -121,19 +162,18 @@ class Pantalla(object):
                 print("puedes ir al sur",)
         return
 
-    def mirar(self,objetoAMirar):
+    def mirar(self,objetoAMirar,objetosPersonaje):
         if objetoAMirar == "":
             self.mostrarDescripcion()
             return
         found = False
-        if self.objetos != "":
-            for o in self.objetos:
+        objetosTotales = self.objetos+objetosPersonaje
+        if objetosTotales != "":
+            for o in objetosTotales:
                 if o.mostrarNombre() == objetoAMirar:
                     print(o.mostrarDescripcion())
                     found = True
-        if not found:
-            print("No encuentro ese objeto para mirar")
-        return
+        return found
 
     def hablar(self, objetoAHablar):
         if objetoAHablar == "":
@@ -150,11 +190,25 @@ class Pantalla(object):
             print("No puedes hablar con: " + objetoAHablar)
         return
 
-    def usar(self,objeto1,objeto2):
+    def usar(self,objeto1,objeto2,objetosPersonaje):
         if objeto1 == "" or objeto2 == "":
             print("Si no vas a usar dos objetos ni me digas Usar!!!")
             return
         found = False
+        objetosTotales = self.objetos+objetosPersonaje
+        haveObject1 = False
+        haveObject2 = False
+        for o in objetosTotales:
+            if o.mostrarNombre() == objeto1:
+                haveObject1 = True
+            if o.mostrarNombre() == objeto2:
+                haveObject2 = True
+        if not haveObject1:
+            print("No tienes el objeto " + objeto1)
+        if not haveObject2:
+            print("No tienes el objeto " + objeto2)
+        if not haveObject1 or not haveObject2:
+            return
         if self.puzzle != "":
             for p in self.puzzle:
                 if p.mostrarAccion() == "usar":
@@ -192,13 +246,17 @@ class Pantalla(object):
 
 
 def main():
+    # definición de objetos del juego
     objetoPuerta = ObjetoJuego("puerta","Es una puerta de metal reforzada que se ve muy muy fuerte",False)
-    objetoLlave = ObjetoJuego("llave","Es una llave de oro que sirve para abrir puertas reforzdas",True)
+    objetoLlave = ObjetoJuego("llave","Es una llave de oro que sirve para abrir puertas reforzadas",True)
     objetoOSO = ObjetoJuego("oso","Es un Oso que sabe cantar, único en el mundo",False)
     objetoPlanta = ObjetoJuego("planta", "Puede ver una planta con una hermosa flor",True)
+    objetoCarta = ObjetoJuego("carta", "Hola Aventurero Bienvenido al Juego del OSO, podrás resolver todos los misterios?",True)
+    # definición de puzzles del Juego
     puzzlePuerta = Puzzle(objetoLlave,objetoPuerta,"usar","Puedes Ver una Puerta que esta cerrada","La puerta está Abierta")
     puzzleOSO = Puzzle(objetoOSO,"objeto2","hablar","Puedes Ver un OSO con cara de Cantor","El oso canta y canta y canta 51,60")
     puzzles =[puzzlePuerta,puzzleOSO]
+    #definición de pantallas del Juego
     pantallaOso = Pantalla("pantallaOso",[puzzlePuerta,puzzleOSO],"dibujar","Este es el bosque del OSO")
     pantallaPatio =Pantalla("pantallaPatio",[],"dibujar","Este es un hermoso patio donde da mucho el Sol")
     pantallaOso.addObjects(objetoPuerta)
@@ -207,14 +265,21 @@ def main():
     pantallaOso.addScreen(3,pantallaPatio)
     pantallaPatio.addScreen(0,pantallaOso)
     pantallaPatio.addObjects(objetoPlanta)
+    #definición de personaje del Juego
+    personaje = Personaje("Donatella")
+    personaje.addInventory(objetoCarta)
+    #Comienza el juego START
     currentScreen = pantallaOso
     currentScreen.mostrarDescripcion()
+    personaje.printInventory()
     solvedGame = False
+
     while not solvedGame:
-        x = list(map(str, input("Que deseas hacer? ").split()))
+        x = list(map(str, input(personaje.showName()+", que deseas hacer? ").split()))
         firstWord = str.lower(x[0])
         secondWord = ""
         thirdWord = ""
+        found = False
         if len(x) == 2:
             secondWord = str.lower(x[1])
         elif len(x) >= 3:
@@ -222,9 +287,12 @@ def main():
             thirdWord = str.lower(x[2])
         if firstWord == "mirar":
             if len(x) == 1:
-                currentScreen.mirar("")
+                found = currentScreen.mirar("",personaje.showInventory())
+                personaje.printInventory()
             else:
-                currentScreen.mirar(secondWord)
+                found = currentScreen.mirar(secondWord,personaje.showInventory())
+                if not found:
+                    print("No encuentro ese objeto para mirar")
         elif firstWord == "hablar":
             if len(x) == 1:
                 currentScreen.hablar("")
@@ -232,11 +300,11 @@ def main():
                 currentScreen.hablar(secondWord)
         elif firstWord == "usar":
             if len(x) == 1:
-                currentScreen.usar("","")
+                currentScreen.usar("","",personaje.showInventory())
             elif secondWord == "" or thirdWord == "":
-                currentScreen.usar("", "")
+                currentScreen.usar("", "",personaje.showInventory())
             else:
-                currentScreen.usar(secondWord,thirdWord)
+                currentScreen.usar(secondWord,thirdWord,personaje.showInventory())
         elif firstWord == "ir":
             found = False
             if len(x) == 1:
@@ -258,7 +326,7 @@ def main():
                 totalPuzzlesSolved += 1
         if totalPuzzlesSolved == totalPuzzles:
             print ("------------------------------------")
-            print("Ganaste!! Campeón de la vida y el Amoorrrrr")
+            print("Ganaste!! "+personaje.showName()+" Campeón de la vida y el Amoorrrrr")
             for p in puzzles:
                 print(p.mostrarDescripcion())
             solvedGame = True
