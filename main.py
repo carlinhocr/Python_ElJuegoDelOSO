@@ -29,9 +29,6 @@
 # puede ser mirada, levantada, dejada y usada con la puerta en cuyo caso la abre y cambia el estado de la pantalla
 # te deja ir a través de la pueta una vez abierta
 
-global AllScreens
-global currentScreen
-
 class ObjetoJuego(object):
     def __init__(self,nombre,descripcion):
         self.nombre = nombre
@@ -78,13 +75,16 @@ class Puzzle(object):
 
 class Pantalla(object):
 
-    def __init__(self,name,objetos,puzzle,dibujar,descripcion,adyacentes):
+    def __init__(self,name,objetos,puzzle,dibujar,descripcion):
         self.name = name
         self.objetos = objetos
         self.puzzle = puzzle
         self.dibujar = dibujar
         self.descripcion = descripcion
-        self.adyacentes = adyacentes
+        self.adyacentes = ["", "", "", ""]
+
+    def addScreen(self,position,screen):
+        self.adyacentes[position] = screen
 
     def mostrarName(self):
         return self.name
@@ -154,11 +154,6 @@ class Pantalla(object):
             print("No puedes usar " + objeto1 +" con "+ objeto2)
         return
 
-    def findScreen(self,nameToFind):
-        for s in AllScreens:
-            if s.mostrarName() == nameToFind:
-                return s
-
     def ir(self, dondeIr):
         dondeIr = str.lower(dondeIr)
         if dondeIr == "":
@@ -166,16 +161,22 @@ class Pantalla(object):
             return
         found = False
         if dondeIr == "norte" and self.adyacentes[0] != "":
-            return self.findScreen(self.adyacentes[0])
+            found = True
+            screen = self.adyacentes[0]
         elif dondeIr == "este" and self.adyacentes[1] != "":
-            return self.findScreen(self.adyacentes[1])
+            found = True
+            screen = self.adyacentes[1]
         elif dondeIr == "oeste" and self.adyacentes[2] != "":
-            return self.findScreen(self.adyacentes[2])
+            found = True
+            screen = self.adyacentes[2]
         elif dondeIr == "sur" and self.adyacentes[3] != "":
-            return self.findScreen(self.adyacentes[3])
+            found = True
+            screen = self.adyacentes[3]
         else:
             print("No puedes ir en esa dirección!!")
-            return
+            found = False
+            screen = ""
+        return screen, found
 
 def main():
     objetoPuerta = ObjetoJuego("puerta","Es una puerta de metal reforzada que se ve muy muy fuerte")
@@ -185,12 +186,11 @@ def main():
     puzzlePuerta = Puzzle(objetoLlave,objetoPuerta,"usar","Puedes Ver una Puerta que esta cerrada","La puerta está Abierta")
     puzzleOSO = Puzzle(objetoOSO,"objeto2","hablar","Puedes Ver un OSO con cara de Cantor","El oso canta y canta y canta 51,60")
     puzzles =[puzzlePuerta,puzzleOSO]
-    pantallaOso = Pantalla("pantallaOso",[objetoPuerta,objetoLlave,objetoOSO],[puzzlePuerta,puzzleOSO],"dibujar","Este es el bosque del OSO",["","","","pantallaPatio"])
-    pantallaPatio =Pantalla("pantallaPatio",[objetoPlanta],[],"dibujar","Este es un hermoso patio donde da mucho el Sol",["pantallaOso","","",""])
-
-    AllsScreens = [pantallaOso,pantallaPatio]
+    pantallaOso = Pantalla("pantallaOso",[objetoPuerta,objetoLlave,objetoOSO],[puzzlePuerta,puzzleOSO],"dibujar","Este es el bosque del OSO")
+    pantallaPatio =Pantalla("pantallaPatio",[objetoPlanta],[],"dibujar","Este es un hermoso patio donde da mucho el Sol")
+    pantallaOso.addScreen(3,pantallaPatio)
+    pantallaPatio.addScreen(0,pantallaOso)
     currentScreen = pantallaOso
-    currentScreen = pantallaPatio
     currentScreen.mostrarDescripcion()
     solvedGame = False
     while not solvedGame:
@@ -221,10 +221,14 @@ def main():
             else:
                 currentScreen.usar(secondWord,thirdWord)
         elif firstWord == "ir":
+            found = False
             if len(x) == 1:
-                newScreen =currentScreen.ir("")
+                screen =currentScreen.ir("")
             else:
-                currentScreen = currentScreen.ir(secondWord)
+                screen,found = currentScreen.ir(secondWord)
+            if found:
+                currentScreen = screen
+            currentScreen.mostrarDescripcion()
         elif firstWord == "ayuda":
             print("puedes usar los verbos: mirar, hablar, usar y todos con uno o dos objetos")
         else:
