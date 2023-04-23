@@ -74,14 +74,14 @@ class Puzzle(object):
     def statusSolved(self):
         return self.resuelto
 
-
 class Pantalla(object):
 
-    def __init__(self,objetos,puzzle,dibujar,descripcion):
+    def __init__(self,objetos,puzzle,dibujar,descripcion,adyacentes):
         self.objetos = objetos
         self.puzzle = puzzle
         self.dibujar = dibujar
         self.descripcion = descripcion
+        self.adyacentes = adyacentes
 
     def mostrarDescripcion(self):
         stringObjetos = ""
@@ -93,6 +93,15 @@ class Pantalla(object):
         if self.puzzle != "":
             for p in self.puzzle:
                 print(p.mostrarDescripcion())
+        if self.adyacentes != "":
+            if self.adyacentes[0] != "":
+                print("puedes ir al norte",)
+            if self.adyacentes[1] != "":
+                print("puedes ir al este",)
+            if self.adyacentes[2] != "":
+                print("puedes ir al oeste",)
+            if self.adyacentes[3] != "":
+                print("puedes ir al sur",)
         return
 
     def mirar(self,objetoAMirar):
@@ -100,10 +109,11 @@ class Pantalla(object):
             self.mostrarDescripcion()
             return
         found = False
-        for o in self.objetos:
-            if o.mostrarNombre() == objetoAMirar:
-                print(o.mostrarDescripcion())
-                found = True
+        if self.objetos != "":
+            for o in self.objetos:
+                if o.mostrarNombre() == objetoAMirar:
+                    print(o.mostrarDescripcion())
+                    found = True
         if not found:
             print("No encuentro ese objeto para mirar")
         return
@@ -113,11 +123,12 @@ class Pantalla(object):
             print("Hablas solo como un loco!!")
             return
         found = False
-        for p in self.puzzle:
-            if p.mostrarAccion() == "hablar":
-                if p.mostrarNombreObjeto1() == objetoAHablar:
-                    print(p.resolverPuzzle())
-                    found = True
+        if self.puzzle != "":
+            for p in self.puzzle:
+                if p.mostrarAccion() == "hablar":
+                    if p.mostrarNombreObjeto1() == objetoAHablar:
+                        print(p.resolverPuzzle())
+                        found = True
         if not found:
             print("No puedes hablar con: " + objetoAHablar)
         return
@@ -127,11 +138,12 @@ class Pantalla(object):
             print("Si no vas a usar dos objetos ni me digas Usar!!!")
             return
         found = False
-        for p in self.puzzle:
-            if p.mostrarAccion() == "usar":
-                if (p.mostrarNombreObjeto1() == objeto1 and p.mostrarNombreObjeto2() == objeto2) or (p.mostrarNombreObjeto1() == objeto2 and p.mostrarNombreObjeto2() == objeto1):
-                   print(p.resolverPuzzle())
-                   found = True
+        if self.puzzle != "":
+            for p in self.puzzle:
+                if p.mostrarAccion() == "usar":
+                    if (p.mostrarNombreObjeto1() == objeto1 and p.mostrarNombreObjeto2() == objeto2) or (p.mostrarNombreObjeto1() == objeto2 and p.mostrarNombreObjeto2() == objeto1):
+                       print(p.resolverPuzzle())
+                       found = True
         if not found:
             print("No puedes usar " + objeto1 +" con "+ objeto2)
         return
@@ -144,9 +156,10 @@ def main():
     puzzlePuerta = Puzzle(objetoLlave,objetoPuerta,"usar","Puedes Ver una Puerta que esta cerrada","La puerta está Abierta")
     puzzleOSO = Puzzle(objetoOSO,"objeto2","hablar","Puedes Ver un OSO con cara de Cantor","El oso canta y canta y canta 51,60")
     puzzles =[puzzlePuerta,puzzleOSO]
-    pantallaOso = Pantalla([objetoPuerta,objetoLlave,objetoOSO],[puzzlePuerta,puzzleOSO],"dibujar","Este es el bosque del OSO")
-    pantallaPatio =Pantalla([objetoPlanta],[],"dibujar","Este es un hermoso patio donde da mucho el Sol")
+    pantallaOso = Pantalla([objetoPuerta,objetoLlave,objetoOSO],[puzzlePuerta,puzzleOSO],"dibujar","Este es el bosque del OSO",["","","","pantallaPatio"])
+    pantallaPatio =Pantalla([objetoPlanta],[],"dibujar","Este es un hermoso patio donde da mucho el Sol",["pantallaOso","","",""])
     currentScreen = pantallaOso
+    currentScreen = pantallaPatio
     currentScreen.mostrarDescripcion()
     solvedGame = False
     while not solvedGame:
