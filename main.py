@@ -243,93 +243,139 @@ class Pantalla(object):
             screen = ""
         return screen, found
 
+class Game(object):
 
+    def __init__(self):
+        self.createGameObjects()
+        self.createGamePuzzles()
+        self.createGameScreens()
+        self.createGameCharacter()
 
-def main():
-    # definición de objetos del juego
-    objetoPuerta = ObjetoJuego("puerta","Es una puerta de metal reforzada que se ve muy muy fuerte",False)
-    objetoLlave = ObjetoJuego("llave","Es una llave de oro que sirve para abrir puertas reforzadas",True)
-    objetoOSO = ObjetoJuego("oso","Es un Oso que sabe cantar, único en el mundo",False)
-    objetoPlanta = ObjetoJuego("planta", "Puede ver una planta con una hermosa flor",True)
-    objetoCarta = ObjetoJuego("carta", "Hola Aventurero Bienvenido al Juego del OSO, podrás resolver todos los misterios?",True)
-    # definición de puzzles del Juego
-    puzzlePuerta = Puzzle(objetoLlave,objetoPuerta,"usar","Puedes Ver una Puerta que esta cerrada","La puerta está Abierta")
-    puzzleOSO = Puzzle(objetoOSO,"objeto2","hablar","Puedes Ver un OSO con cara de Cantor","El oso canta y canta y canta 51,60")
-    puzzles =[puzzlePuerta,puzzleOSO]
-    #definición de pantallas del Juego
-    pantallaOso = Pantalla("pantallaOso",[puzzlePuerta,puzzleOSO],"dibujar","Este es el bosque del OSO")
-    pantallaPatio =Pantalla("pantallaPatio",[],"dibujar","Este es un hermoso patio donde da mucho el Sol")
-    pantallaOso.addObjects(objetoPuerta)
-    pantallaOso.addObjects(objetoLlave)
-    pantallaOso.addObjects(objetoOSO)
-    pantallaOso.addScreen(3,pantallaPatio)
-    pantallaPatio.addScreen(0,pantallaOso)
-    pantallaPatio.addObjects(objetoPlanta)
-    #definición de personaje del Juego
-    personaje = Personaje("Donatella")
-    personaje.addInventory(objetoCarta)
-    #Comienza el juego START
-    currentScreen = pantallaOso
-    currentScreen.mostrarDescripcion()
-    personaje.printInventory()
-    solvedGame = False
+    def createGameObjects(self):
+        # definición de objetos del juego
+        self.objetoPuerta = ObjetoJuego("puerta", "Es una puerta de metal reforzada que se ve muy muy fuerte", False)
+        self.objetoLlave = ObjetoJuego("llave", "Es una llave de oro que sirve para abrir puertas reforzadas", True)
+        self.objetoOSO = ObjetoJuego("oso", "Es un Oso que sabe cantar, único en el mundo", False)
+        self.objetoPlanta = ObjetoJuego("planta", "Puede ver una planta con una hermosa flor", True)
+        self.objetoCarta = ObjetoJuego("carta",
+                                  "Hola Aventurero Bienvenido al Juego del OSO, podrás resolver todos los misterios?",
+                                  True)
 
-    while not solvedGame:
-        x = list(map(str, input(personaje.showName()+", que deseas hacer? ").split()))
+    def createGamePuzzles(self):
+        self.puzzlePuerta = Puzzle(self.objetoLlave, self.objetoPuerta, "usar", "Puedes Ver una Puerta que esta cerrada",
+                              "La puerta está Abierta")
+        self.puzzleOSO = Puzzle(self.objetoOSO, "objeto2", "hablar", "Puedes Ver un OSO con cara de Cantor",
+                           "El oso canta y canta y canta 51,60")
+        self.puzzles = [self.puzzlePuerta, self.puzzleOSO]
+
+    def createGameScreens(self):
+        self.pantallaOso = Pantalla("pantallaOso", [self.puzzlePuerta, self.puzzleOSO], "dibujar", "Este es el bosque del OSO")
+        self.pantallaPatio = Pantalla("pantallaPatio", [], "dibujar", "Este es un hermoso patio donde da mucho el Sol")
+        self.pantallaOso.addObjects(self.objetoPuerta)
+        self.pantallaOso.addObjects(self.objetoLlave)
+        self.pantallaOso.addObjects(self.objetoOSO)
+        self.pantallaOso.addScreen(3, self.pantallaPatio)
+        self.pantallaPatio.addScreen(0, self.pantallaOso)
+        self.pantallaPatio.addObjects(self.objetoPlanta)
+
+    def createGameCharacter(self):
+        #definición de personaje del Juego
+        self.personaje = Personaje("Donatella")
+        self.personaje.addInventory(self.objetoCarta)
+
+    def start(self):
+        # Comienza el juego START
+        self.currentScreen = self.pantallaOso
+        self.currentScreen.mostrarDescripcion()
+        self.personaje.printInventory()
+        self.solvedGame = False
+        self.play()
+
+    def mirar(self,x,firstWord,secondWord):
+            found = False
+            if len(x) == 1:
+                found = self.currentScreen.mirar("", self.personaje.showInventory())
+                self.personaje.printInventory()
+            else:
+                found = self.currentScreen.mirar(secondWord, self.personaje.showInventory())
+                if not found:
+                    print("No encuentro ese objeto para mirar")
+            return found
+
+    def hablar(self, x, firstWord, secondWord):
+        if len(x) == 1:
+            self.currentScreen.hablar("")
+        else:
+            self.currentScreen.hablar(secondWord)
+
+    def usar(self, x, firstWord, secondWord,thirdWord):
+        if len(x) == 1:
+            self.currentScreen.usar("", "", self.personaje.showInventory())
+        elif secondWord == "" or thirdWord == "":
+            self.currentScreen.usar("", "", self.personaje.showInventory())
+        else:
+            self.currentScreen.usar(secondWord, thirdWord, self.personaje.showInventory())
+
+    def ir(self,x,firsWord,secondWord):
+        found = False
+        if len(x) == 1:
+            screen = self.currentScreen.ir("")
+        else:
+            screen, found = self.currentScreen.ir(secondWord)
+        if found:
+            self.currentScreen = screen
+        self.currentScreen.mostrarDescripcion()
+
+    def ayuda(self):
+        print("puedes usar los verbos: mirar, hablar, usar y todos con uno o dos objetos")
+
+    def parseInput(self):
+        x = list(map(str, input(self.personaje.showName() + ", que deseas hacer? ").split()))
         firstWord = str.lower(x[0])
         secondWord = ""
         thirdWord = ""
-        found = False
         if len(x) == 2:
             secondWord = str.lower(x[1])
         elif len(x) >= 3:
             secondWord = str.lower(x[1])
             thirdWord = str.lower(x[2])
-        if firstWord == "mirar":
-            if len(x) == 1:
-                found = currentScreen.mirar("",personaje.showInventory())
-                personaje.printInventory()
-            else:
-                found = currentScreen.mirar(secondWord,personaje.showInventory())
-                if not found:
-                    print("No encuentro ese objeto para mirar")
-        elif firstWord == "hablar":
-            if len(x) == 1:
-                currentScreen.hablar("")
-            else:
-                currentScreen.hablar(secondWord)
-        elif firstWord == "usar":
-            if len(x) == 1:
-                currentScreen.usar("","",personaje.showInventory())
-            elif secondWord == "" or thirdWord == "":
-                currentScreen.usar("", "",personaje.showInventory())
-            else:
-                currentScreen.usar(secondWord,thirdWord,personaje.showInventory())
-        elif firstWord == "ir":
-            found = False
-            if len(x) == 1:
-                screen =currentScreen.ir("")
-            else:
-                screen,found = currentScreen.ir(secondWord)
-            if found:
-                currentScreen = screen
-            currentScreen.mostrarDescripcion()
-        elif firstWord == "ayuda":
-            print("puedes usar los verbos: mirar, hablar, usar y todos con uno o dos objetos")
-        else:
-            print("No se lo que quieres hacer: " + x[0])
+        return x,firstWord,secondWord,thirdWord
 
+    def checkGameSolved(self):
+        solvedGame = False
         totalPuzzlesSolved = 0
-        totalPuzzles = len(puzzles)
-        for p in puzzles:
-            if p.statusSolved() == True:
+        totalPuzzles = len(self.puzzles)
+        for p in self.puzzles:
+            if p.statusSolved():
                 totalPuzzlesSolved += 1
         if totalPuzzlesSolved == totalPuzzles:
-            print ("------------------------------------")
-            print("Ganaste!! "+personaje.showName()+" Campeón de la vida y el Amoorrrrr")
-            for p in puzzles:
+            print("------------------------------------")
+            print("Ganaste!! " + self.personaje.showName() + " Campeón de la vida y el Amoorrrrr")
+            for p in self.puzzles:
                 print(p.mostrarDescripcion())
-            solvedGame = True
+            solvedGame=True
+        return solvedGame
+
+    def play(self):
+        while not self.solvedGame:
+            x,firstWord,secondWord,thirdWord = self.parseInput()
+            if firstWord == "mirar":
+                self.mirar(x,firstWord,secondWord)
+            elif firstWord == "hablar":
+                self.hablar(x,firstWord,secondWord)
+            elif firstWord == "usar":
+                self.usar(x,firstWord,secondWord,thirdWord)
+            elif firstWord == "ir":
+                self.ir(x,firstWord,secondWord)
+            elif firstWord == "ayuda":
+                self.ayuda()
+            else:
+                print("No se lo que quieres hacer: " + x[0])
+            self.solvedGame = self.checkGameSolved()
+
+def main():
+    juego = Game()
+    juego.start()
 
 
 if __name__ == "__main__":
