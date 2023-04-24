@@ -86,8 +86,8 @@ class Personaje(object):
     def addInventory(self,objeto):
         self.inventory.append(objeto)
 
-    def removeInventory(self,objecto):
-        if objecto.isRemovale():
+    def removeInventory(self,objeto):
+        if objeto.isRemovable():
             self.inventory.remove(objeto)
 
     def showInventory(self):
@@ -113,7 +113,6 @@ class Personaje(object):
         # if not found:
         #     print("No encuentro ese objeto para mirar")
         return found
-
 
 class Pantalla(object):
 
@@ -248,7 +247,6 @@ class Pantalla(object):
             print("Si no me decis que tomar no podremos tomar nada")
             return
         found = False
-        print(objetoATomar)
         for o in self.showObjects():
             if o.mostrarNombre() == objetoATomar:
                 if o.isRemovable():
@@ -266,6 +264,30 @@ class Pantalla(object):
                         found = True
         if not found:
             print("No se encuentra el objeto: " + objetoATomar)
+        return
+
+    def dejar(self, objetoADejar,personaje):
+        if objetoADejar == "":
+            print("Si no me decis que dejar no podremos dejar nada")
+            return
+        found = False
+        for o in personaje.showInventory():
+            if o.mostrarNombre() == objetoADejar:
+                if o.isRemovable():
+                    personaje.removeInventory(o)
+                    self.addObjects(o)
+                    print("Haz dejado el objeto " + objetoADejar)
+                else:
+                    print("No puedes dejar el objeto " + objetoADejar)
+                found = True
+        if self.puzzle != "":
+            for p in self.puzzle:
+                if p.mostrarAccion() == "dejar":
+                    if p.mostrarNombreObjeto1() == objetoADejar:
+                        print(p.resolverPuzzle())
+                        found = True
+        if not found:
+            print("No se encuentra el objeto: " + objetoADejar)
         return
 
 
@@ -292,17 +314,19 @@ class Game(object):
                               "La puerta está Abierta")
         self.puzzleOSO = Puzzle(self.objetoOSO, "objeto2", "hablar", "Puedes Ver un OSO con cara de Cantor",
                            "El oso canta y canta y canta 51,60")
-        self.puzzles = [self.puzzlePuerta, self.puzzleOSO]
+        self.puzzleOSOPlanta = Puzzle(self.objetoOSO, self.objetoPlanta, "usar", "A este Oso le encantan las plantas",
+                           "El Oso está feliz de tener su planta")
+        self.puzzles = [self.puzzlePuerta, self.puzzleOSO,self.puzzleOSOPlanta]
 
     def createGameScreens(self):
-        self.pantallaOso = Pantalla("pantallaOso", [self.puzzlePuerta, self.puzzleOSO], "dibujar", "Este es el bosque del OSO")
+        self.pantallaOso = Pantalla("pantallaOso", [self.puzzlePuerta, self.puzzleOSO,self.puzzleOSOPlanta], "dibujar", "Este es el bosque del OSO")
         self.pantallaPatio = Pantalla("pantallaPatio", [], "dibujar", "Este es un hermoso patio donde da mucho el Sol")
         self.pantallaOso.addObjects(self.objetoPuerta)
-        self.pantallaOso.addObjects(self.objetoLlave)
         self.pantallaOso.addObjects(self.objetoOSO)
         self.pantallaOso.addScreen(3, self.pantallaPatio)
         self.pantallaPatio.addScreen(0, self.pantallaOso)
         self.pantallaPatio.addObjects(self.objetoPlanta)
+        self.pantallaPatio.addObjects(self.objetoLlave)
 
     def createGameCharacter(self):
         #definición de personaje del Juego
@@ -358,6 +382,12 @@ class Game(object):
         else:
             self.currentScreen.tomar(secondWord,self.personaje)
 
+    def dejar(self, x, firstWord, secondWord):
+        if len(x) == 1:
+            self.currentScreen.dejar("",self.personaje)
+        else:
+            self.currentScreen.dejar(secondWord,self.personaje)
+
     def ayuda(self):
         print("puedes usar los verbos: mirar, hablar, usar y todos con uno o dos objetos")
 
@@ -401,6 +431,8 @@ class Game(object):
                 self.ir(x,firstWord,secondWord)
             elif firstWord == "tomar":
                 self.tomar(x,firstWord,secondWord)
+            elif firstWord == "dejar":
+                self.dejar(x,firstWord,secondWord)
             elif firstWord == "ayuda":
                 self.ayuda()
             else:
