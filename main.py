@@ -129,7 +129,7 @@ class Pantalla(object):
         self.objetos.append(objecto)
 
     def removeObjects(self,objecto):
-        if objecto.isRemovale():
+        if objecto.isRemovable():
             self.objetos.remove(objecto)
 
     def showObjects(self):
@@ -243,6 +243,32 @@ class Pantalla(object):
             screen = ""
         return screen, found
 
+    def tomar(self, objetoATomar,personaje):
+        if objetoATomar == "":
+            print("Si no me decis que tomar no podremos tomar nada")
+            return
+        found = False
+        print(objetoATomar)
+        for o in self.showObjects():
+            if o.mostrarNombre() == objetoATomar:
+                if o.isRemovable():
+                    personaje.addInventory(o)
+                    self.removeObjects(o)
+                    print("Haz tomado el objeto " + objetoATomar)
+                else:
+                    print("No puedes llevarte el objeto " + objetoATomar)
+                found = True
+        if self.puzzle != "":
+            for p in self.puzzle:
+                if p.mostrarAccion() == "tomar":
+                    if p.mostrarNombreObjeto1() == objetoATomar:
+                        print(p.resolverPuzzle())
+                        found = True
+        if not found:
+            print("No se encuentra el objeto: " + objetoATomar)
+        return
+
+
 class Game(object):
 
     def __init__(self):
@@ -326,6 +352,12 @@ class Game(object):
             self.currentScreen = screen
         self.currentScreen.mostrarDescripcion()
 
+    def tomar(self, x, firstWord, secondWord):
+        if len(x) == 1:
+            self.currentScreen.tomar("",self.personaje)
+        else:
+            self.currentScreen.tomar(secondWord,self.personaje)
+
     def ayuda(self):
         print("puedes usar los verbos: mirar, hablar, usar y todos con uno o dos objetos")
 
@@ -367,6 +399,8 @@ class Game(object):
                 self.usar(x,firstWord,secondWord,thirdWord)
             elif firstWord == "ir":
                 self.ir(x,firstWord,secondWord)
+            elif firstWord == "tomar":
+                self.tomar(x,firstWord,secondWord)
             elif firstWord == "ayuda":
                 self.ayuda()
             else:
