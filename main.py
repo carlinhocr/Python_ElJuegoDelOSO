@@ -290,7 +290,6 @@ class Pantalla(object):
             print("No se encuentra el objeto: " + objetoADejar)
         return
 
-
 class Game(object):
 
     def __init__(self):
@@ -308,6 +307,9 @@ class Game(object):
         self.objetoCarta = ObjetoJuego("carta",
                                   "Hola Aventurero Bienvenido al Juego del OSO, podrás resolver todos los misterios?",
                                   True)
+        self.objetoCanaDePescar = ObjetoJuego("caña", "Es una caña de pescar que sirve para pescar", True)
+        self.objetoAlmacenero = ObjetoJuego("almacenero", "Es el dueño del almacen vende cosas por monedas", False)
+        self.objetoMoneda = ObjetoJuego("moneda", "Es una moneda de oro sirve para comprar cosas", True)
 
     def createGamePuzzles(self):
         self.puzzlePuerta = Puzzle(self.objetoLlave, self.objetoPuerta, "usar", "Puedes Ver una Puerta que esta cerrada",
