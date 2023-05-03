@@ -290,6 +290,20 @@ class Pantalla(object):
             print("No se encuentra el objeto: " + objetoADejar)
         return
 
+class Sinonimos(object):
+
+    def __init__(self):
+        self.sino ={ "mirar": ["observar","examinar","estudiar"],
+                     "tomar": ["coger", "agarrar", "levantar"]}
+
+    def checkSinonimo(self,word):
+        for key in self.sino.keys():
+            for valueList in self.sino[key]:
+                if word in valueList:
+                    wordResult = key
+                    return wordResult
+        return word
+
 class Game(object):
 
     def __init__(self):
@@ -297,6 +311,15 @@ class Game(object):
         self.createGamePuzzles()
         self.createGameScreens()
         self.createGameCharacter()
+        self.actionVerbs = {"mirar": self.mirar,
+                           "usar": self.usar,
+                           "hablar": self.hablar,
+                           "ir": self.ir,
+                           "tomar": self.tomar,
+                           "dejar": self.dejar,
+                           "ayuda": self.ayuda,
+                       }
+        self.sinonimosVerbos = Sinonimos()
 
     def createGameObjects(self):
         # definición de objetos del juego
@@ -343,24 +366,36 @@ class Game(object):
         self.solvedGame = False
         self.play()
 
-    def mirar(self,x,firstWord,secondWord):
-            found = False
-            if len(x) == 1:
-                found = self.currentScreen.mirar("", self.personaje.showInventory())
-                self.personaje.printInventory()
-            else:
-                found = self.currentScreen.mirar(secondWord, self.personaje.showInventory())
-                if not found:
-                    print("No encuentro ese objeto para mirar")
-            return found
+    def mirar(self,allInputsOrdered):
+        x = allInputsOrdered[0]
+        firstWord = allInputsOrdered[1]
+        secondWord = allInputsOrdered[2]
+        thirdWord = allInputsOrdered[3]
+        found = False
+        if len(x) == 1:
+            found = self.currentScreen.mirar("", self.personaje.showInventory())
+            self.personaje.printInventory()
+        else:
+            found = self.currentScreen.mirar(secondWord, self.personaje.showInventory())
+            if not found:
+                print("No encuentro ese objeto para mirar")
+        return found
 
-    def hablar(self, x, firstWord, secondWord):
+    def hablar(self,allInputsOrdered):
+        x = allInputsOrdered[0]
+        firstWord = allInputsOrdered[1]
+        secondWord = allInputsOrdered[2]
+        thirdWord = allInputsOrdered[3]
         if len(x) == 1:
             self.currentScreen.hablar("")
         else:
             self.currentScreen.hablar(secondWord)
 
-    def usar(self, x, firstWord, secondWord,thirdWord):
+    def usar(self,allInputsOrdered):
+        x = allInputsOrdered[0]
+        firstWord = allInputsOrdered[1]
+        secondWord = allInputsOrdered[2]
+        thirdWord = allInputsOrdered[3]
         if len(x) == 1:
             self.currentScreen.usar("", "", self.personaje.showInventory())
         elif secondWord == "" or thirdWord == "":
@@ -368,7 +403,11 @@ class Game(object):
         else:
             self.currentScreen.usar(secondWord, thirdWord, self.personaje.showInventory())
 
-    def ir(self,x,firsWord,secondWord):
+    def ir(self,allInputsOrdered):
+        x = allInputsOrdered[0]
+        firstWord = allInputsOrdered[1]
+        secondWord = allInputsOrdered[2]
+        thirdWord = allInputsOrdered[3]
         found = False
         if len(x) == 1:
             screen = self.currentScreen.ir("")
@@ -378,20 +417,31 @@ class Game(object):
             self.currentScreen = screen
         self.currentScreen.mostrarDescripcion()
 
-    def tomar(self, x, firstWord, secondWord):
+    def tomar(self,allInputsOrdered):
+        x = allInputsOrdered[0]
+        firstWord = allInputsOrdered[1]
+        secondWord = allInputsOrdered[2]
+        thirdWord = allInputsOrdered[3]
         if len(x) == 1:
             self.currentScreen.tomar("",self.personaje)
         else:
             self.currentScreen.tomar(secondWord,self.personaje)
 
-    def dejar(self, x, firstWord, secondWord):
+    def dejar(self,allInputsOrdered):
+        x = allInputsOrdered[0]
+        firstWord = allInputsOrdered[1]
+        secondWord = allInputsOrdered[2]
+        thirdWord = allInputsOrdered[3]
         if len(x) == 1:
             self.currentScreen.dejar("",self.personaje)
         else:
             self.currentScreen.dejar(secondWord,self.personaje)
 
-    def ayuda(self):
-        print("puedes usar los verbos: mirar, hablar, usar y todos con uno o dos objetos")
+    def ayuda(self,allInputsOrdered):
+        verbos = ""
+        for key in self.actionVerbs.keys():
+            verbos += key + ", "
+        print("puedes usar los verbos: "+verbos+"y todos con uno o dos objetos")
 
     def parseInput(self):
         x = list(map(str, input(self.personaje.showName() + ", que deseas hacer? ").split()))
@@ -403,7 +453,8 @@ class Game(object):
         elif len(x) >= 3:
             secondWord = str.lower(x[1])
             thirdWord = str.lower(x[2])
-        return x,firstWord,secondWord,thirdWord
+        allInputsOrdered =[x,firstWord,secondWord,thirdWord]
+        return allInputsOrdered
 
     def checkGameSolved(self):
         solvedGame = False
@@ -420,25 +471,19 @@ class Game(object):
             solvedGame=True
         return solvedGame
 
+    def checkAction(self,allInputsOrdered):
+        x = allInputsOrdered[0]
+        verboCheckear = allInputsOrdered[1]
+        verbo = self.sinonimosVerbos.checkSinonimo(verboCheckear)
+        if verbo in self.actionVerbs.keys():
+            self.actionVerbs[verbo](allInputsOrdered)
+        else:
+            print("No se lo que quieres hacer: " + x[0])
+
     def play(self):
         while not self.solvedGame:
-            x,firstWord,secondWord,thirdWord = self.parseInput()
-            if firstWord == "mirar":
-                self.mirar(x,firstWord,secondWord)
-            elif firstWord == "hablar":
-                self.hablar(x,firstWord,secondWord)
-            elif firstWord == "usar":
-                self.usar(x,firstWord,secondWord,thirdWord)
-            elif firstWord == "ir":
-                self.ir(x,firstWord,secondWord)
-            elif firstWord == "tomar":
-                self.tomar(x,firstWord,secondWord)
-            elif firstWord == "dejar":
-                self.dejar(x,firstWord,secondWord)
-            elif firstWord == "ayuda":
-                self.ayuda()
-            else:
-                print("No se lo que quieres hacer: " + x[0])
+            allInputsOrdered = self.parseInput()
+            self.checkAction(allInputsOrdered)
             self.solvedGame = self.checkGameSolved()
 
 def main():
