@@ -379,6 +379,7 @@ class Game(object):
     #                 and (thirdWord == obj1 or thirdWord == obj2 or obj2 == "nada"):
     #             print("puzzle resuelto: ",puzzle.mostrarDescripcion())
 
+
     def start(self):
         # Comienza el juego START
         self.currentScreen = self.pantallaOso
@@ -386,6 +387,9 @@ class Game(object):
         self.personaje.printInventory()
         self.solvedGame = False
         self.play()
+
+    # armar una clase nueva con los verbos y los allInputOrdered, la pantalla current screen y el personaje
+    # con eso calcular si se resuelven o no los puzzles
 
     def mirar(self,allInputsOrdered):
         x = allInputsOrdered[0]
