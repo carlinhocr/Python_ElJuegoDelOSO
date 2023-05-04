@@ -29,6 +29,8 @@
 # puede ser mirada, levantada, dejada y usada con la puerta en cuyo caso la abre y cambia el estado de la pantalla
 # te deja ir a través de la pueta una vez abierta
 
+#ir al puzzle de esa pantalla con la accion y los objetos y ver si se resuelve y que la clase puzzle conteste
+
 class ObjetoJuego(object):
     def __init__(self,nombre,descripcion,removable):
         self.nombre = nombre
@@ -133,6 +135,9 @@ class Pantalla(object):
 
     def showObjects(self):
         return self.objetos
+
+    def showPuzzles(self):
+        return self.puzzle
 
     def addScreen(self,position,screen):
         self.adyacentes[position] = screen
@@ -323,6 +328,7 @@ class Game(object):
 
     def createGameObjects(self):
         # definición de objetos del juego
+        self.objetoNada= ObjetoJuego("nada", "nada", False)
         self.objetoPuerta = ObjetoJuego("puerta", "Es una puerta de metal reforzada que se ve muy muy fuerte", False)
         self.objetoLlave = ObjetoJuego("llave", "Es una llave de oro que sirve para abrir puertas reforzadas", True)
         self.objetoOSO = ObjetoJuego("oso", "Es un Oso que sabe cantar, único en el mundo", False)
@@ -337,7 +343,7 @@ class Game(object):
     def createGamePuzzles(self):
         self.puzzlePuerta = Puzzle(self.objetoLlave, self.objetoPuerta, "usar", "Puedes Ver una Puerta que esta cerrada",
                               "La puerta está Abierta")
-        self.puzzleOSO = Puzzle(self.objetoOSO, "objeto2", "hablar", "Puedes Ver un OSO con cara de Cantor",
+        self.puzzleOSO = Puzzle(self.objetoOSO, self.objetoNada, "hablar", "Puedes Ver un OSO con cara de Cantor",
                            "El oso canta y canta y canta 51,60")
         self.puzzleOSOPlanta = Puzzle(self.objetoOSO, self.objetoPlanta, "usar", "A este Oso le encantan las plantas",
                            "El Oso está feliz de tener su planta")
@@ -357,6 +363,21 @@ class Game(object):
         #definición de personaje del Juego
         self.personaje = Personaje("Donatella")
         self.personaje.addInventory(self.objetoCarta)
+
+    # no esta chequeando que el personaje tenga los objetos o que la pantalla los tenga
+    # def puzzleCheckSolved(self,allInputsOrdered):
+    #     x = allInputsOrdered[0]
+    #     firstWord = allInputsOrdered[1]
+    #     secondWord = allInputsOrdered[2]
+    #     thirdWord = allInputsOrdered[3]
+    #     for puzzle in self.currentScreen.showPuzzles():
+    #         accion = puzzle.mostrarAccion()
+    #         obj1 = puzzle.mostrarNombreObjeto1()
+    #         obj2 = puzzle.mostrarNombreObjeto2()
+    #         print("entro",accion,obj1,obj2,firstWord,secondWord,thirdWord)
+    #         if (firstWord == accion) and (secondWord == obj1 or secondWord == obj2 or obj2 == "nada") \
+    #                 and (thirdWord == obj1 or thirdWord == obj2 or obj2 == "nada"):
+    #             print("puzzle resuelto: ",puzzle.mostrarDescripcion())
 
     def start(self):
         # Comienza el juego START
@@ -476,6 +497,7 @@ class Game(object):
         verboCheckear = allInputsOrdered[1]
         verbo = self.sinonimosVerbos.checkSinonimo(verboCheckear)
         if verbo in self.actionVerbs.keys():
+            # self.puzzleCheckSolved(allInputsOrdered)
             self.actionVerbs[verbo](allInputsOrdered)
         else:
             print("No se lo que quieres hacer: " + x[0])
